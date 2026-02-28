@@ -1,0 +1,2408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill 接入管理系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f8fa;
+    --bg-tertiary: #f0f1f3;
+    --bg-elevated: #f5f6f8;
+    --bg-hover: #edeef1;
+    --border-subtle: rgba(0,0,0,0.06);
+    --border-default: rgba(0,0,0,0.12);
+    --border-focus: rgba(59,130,246,0.5);
+    --text-primary: #1a1a2e;
+    --text-secondary: #6b7280;
+    --text-tertiary: #9ca3af;
+    --accent-blue: #3b82f6;
+    --accent-blue-dim: rgba(59,130,246,0.08);
+    --accent-blue-glow: rgba(59,130,246,0.2);
+    --accent-green: #10b981;
+    --accent-green-dim: rgba(16,185,129,0.08);
+    --accent-amber: #d97706;
+    --accent-amber-dim: rgba(217,119,6,0.08);
+    --accent-red: #ef4444;
+    --accent-red-dim: rgba(239,68,68,0.06);
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+    --font-sans: 'DM Sans', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --transition-fast: 120ms ease;
+    --transition-default: 200ms ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ===== Layout Shell ===== */
+  .app-shell {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 220px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-subtle);
+    padding: 20px 0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-brand {
+    padding: 0 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sidebar-brand-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-blue), #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-brand-icon svg { width: 16px; height: 16px; stroke: white; stroke-width: 2.5; }
+
+  .sidebar-brand-name {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .nav-section { padding: 0 12px; margin-bottom: 24px; }
+
+  .nav-section-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+  }
+
+  .nav-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+  }
+
+  .nav-item svg { width: 16px; height: 16px; opacity: 0.7; flex-shrink: 0; }
+  .nav-item.active svg { opacity: 1; }
+
+  .sidebar-spacer { flex: 1; }
+
+  .main-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== Page Switching ===== */
+  .page { display: none; flex-direction: column; height: 100vh; }
+  .page.active { display: flex; }
+
+  /* ===== Buttons ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+  }
+
+  .btn svg { width: 15px; height: 15px; }
+
+  .btn-primary {
+    background: var(--accent-blue);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(91,154,255,0.3);
+  }
+
+  .btn-primary:hover {
+    background: #6da6ff;
+    box-shadow: 0 2px 8px rgba(91,154,255,0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+  }
+
+  .btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: rgba(0,0,0,0.2);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .btn-link-skill {
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+    border: 1px solid rgba(59,130,246,0.2);
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .btn-link-skill:hover {
+    background: rgba(59,130,246,0.12);
+    border-color: rgba(59,130,246,0.35);
+  }
+
+  .btn-link-skill.linked {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+    border-color: rgba(16,185,129,0.2);
+  }
+
+  .btn-link-skill.linked:hover {
+    background: rgba(16,185,129,0.12);
+  }
+
+  .btn-danger {
+    background: var(--accent-red-dim);
+    color: var(--accent-red);
+  }
+
+  .btn-danger:hover {
+    background: rgba(239,68,68,0.12);
+  }
+
+  .btn-sync {
+    background: var(--accent-amber-dim);
+    color: var(--accent-amber);
+    border: 1px solid rgba(217,119,6,0.2);
+  }
+
+  .btn-sync:hover {
+    background: rgba(217,119,6,0.12);
+  }
+
+  /* ===== Page Header ===== */
+  .page-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+
+  .page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  /* ===== Filter Bar ===== */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .search-box {
+    position: relative;
+    width: 280px;
+  }
+
+  .search-box svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px;
+    height: 15px;
+    color: var(--text-tertiary);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
+    background: #ffffff;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    outline: none;
+    transition: all var(--transition-fast);
+  }
+
+  .search-input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--accent-blue-dim);
+  }
+
+  .search-input::placeholder { color: var(--text-tertiary); }
+
+  .filter-select {
+    padding: 8px 32px 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
+    background: #ffffff;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+
+  .filter-select:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--accent-blue-dim);
+  }
+
+  /* ===== Table ===== */
+  .table-container {
+    padding: 0 32px 32px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-subtle);
+    position: sticky;
+    top: 0;
+    background: var(--bg-primary);
+    z-index: 1;
+  }
+
+  .table td {
+    padding: 14px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+
+  .table tbody tr { transition: background var(--transition-fast); }
+  .table tbody tr:hover { background: var(--bg-tertiary); }
+
+  .id-text {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .category-name {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .category-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .skill-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .skill-tag:hover { background: rgba(16,185,129,0.15); }
+  .skill-tag svg { width: 11px; height: 11px; }
+
+  .actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .time-text { color: var(--text-tertiary); font-size: 13px; }
+
+  /* ===== Form Page Header ===== */
+  .form-page-header {
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    background: var(--bg-secondary);
+  }
+
+  .form-page-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .back-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .back-btn svg { width: 18px; height: 18px; }
+
+  .form-page-title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .form-page-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ===== Form Layout ===== */
+  .form-layout {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 0;
+  }
+
+  .form-panel {
+    padding: 28px 32px;
+    overflow-y: auto;
+    border-right: 1px solid var(--border-subtle);
+  }
+
+  .form-group { margin-bottom: 24px; }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    letter-spacing: 0.01em;
+  }
+
+  .form-label .required { color: var(--accent-red); margin-left: 2px; }
+
+  .form-input {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
+    background: #ffffff;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    transition: all var(--transition-fast);
+    outline: none;
+  }
+
+  .form-input::placeholder { color: var(--text-tertiary); }
+
+  .form-input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--accent-blue-dim);
+    background: #ffffff;
+  }
+
+  select.form-input {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 36px;
+  }
+
+  select.form-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  }
+
+  .form-input-row { display: flex; gap: 8px; }
+  .form-input-row .form-input { flex: 1; }
+
+  .form-textarea {
+    min-height: 140px;
+    resize: vertical;
+    line-height: 1.6;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+  }
+
+  .form-hint {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+  }
+
+  .form-hint code {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--accent-blue);
+  }
+
+  .form-divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 28px 0;
+  }
+
+  .sync-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    margin-top: 10px;
+  }
+
+  .sync-status-bar.success {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+    border: 1px solid rgba(16,185,129,0.15);
+  }
+
+  .sync-status-bar.warning {
+    background: var(--accent-amber-dim);
+    color: var(--accent-amber);
+    border: 1px solid rgba(217,119,6,0.15);
+  }
+
+  .sync-status-bar.loading {
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+    border: 1px solid rgba(59,130,246,0.15);
+  }
+
+  .sync-status-bar svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .sync-status-bar span { flex: 1; }
+
+  /* ===== Preview Panel ===== */
+  .preview-panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    overflow: hidden;
+  }
+
+  .preview-header {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .preview-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .preview-header-left svg { width: 14px; height: 14px; }
+
+  .preview-version {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 100px;
+    background: var(--bg-elevated);
+    color: var(--text-tertiary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .preview-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .preview-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 13px;
+    gap: 12px;
+  }
+
+  .preview-empty svg { width: 40px; height: 40px; opacity: 0.3; }
+
+  /* ===== Markdown Preview ===== */
+  .md-preview {
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .md-preview h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    letter-spacing: -0.03em;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .md-preview h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+
+  .md-preview h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: 18px;
+    margin-bottom: 6px;
+  }
+
+  .md-preview p { margin-bottom: 12px; }
+
+  .md-preview code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--accent-blue);
+  }
+
+  .md-preview pre {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin: 12px 0;
+    overflow-x: auto;
+  }
+
+  .md-preview pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .md-preview ul, .md-preview ol { margin: 8px 0 12px 20px; }
+  .md-preview li { margin-bottom: 4px; }
+  .md-preview strong { color: var(--text-primary); font-weight: 600; }
+  .md-preview hr { border: none; height: 1px; background: var(--border-subtle); margin: 20px 0; }
+
+  /* ===== Variable Tags ===== */
+  .var-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+  .var-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+    border: 1px solid rgba(59,130,246,0.15);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    user-select: none;
+  }
+
+  .var-tag:hover {
+    background: rgba(59,130,246,0.12);
+    border-color: rgba(59,130,246,0.3);
+  }
+
+  .var-tag svg { width: 12px; height: 12px; }
+
+  /* ===== Skills List Table ===== */
+  .skill-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .skill-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .category-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    font-weight: 400;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .status-badge.normal {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+  }
+
+  .status-badge.update-available {
+    background: var(--accent-amber-dim);
+    color: var(--accent-amber);
+    cursor: pointer;
+  }
+
+  .status-badge.update-available:hover { background: rgba(217,119,6,0.12); }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  .status-badge.update-available .status-dot {
+    animation: pulse-amber 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-amber {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ===== Empty State ===== */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 32px;
+    text-align: center;
+  }
+
+  .empty-state-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .empty-state-icon svg { width: 28px; height: 28px; color: var(--text-tertiary); }
+
+  .empty-state-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+
+  .empty-state-desc {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-bottom: 20px;
+    max-width: 340px;
+    line-height: 1.5;
+  }
+
+  /* ===== Modal ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: #ffffff;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    max-width: 560px;
+    width: 90%;
+    box-shadow: var(--shadow-lg);
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+  }
+
+  .modal-close:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .modal-close svg { width: 18px; height: 18px; }
+
+  .modal-body { padding: 24px; overflow-y: auto; }
+
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  /* ===== Linked Skill Info ===== */
+  .linked-skill-info {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+  }
+
+  .linked-skill-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .linked-skill-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+  }
+
+  .linked-skill-name span {
+    color: var(--text-tertiary);
+    font-weight: 400;
+    font-size: 12px;
+    margin-left: 8px;
+  }
+
+  .linked-skill-detail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .linked-skill-detail code {
+    font-family: var(--font-mono);
+    background: #fff;
+    border: 1px solid var(--border-subtle);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+
+  .linked-skill-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+  }
+
+  .btn-unlink {
+    margin-top: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ===== Toast ===== */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toast {
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: toastIn 300ms ease, toastOut 300ms ease 2.5s forwards;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .toast.success {
+    background: #ecfdf5;
+    color: var(--accent-green);
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+
+  .toast.info {
+    background: #eff6ff;
+    color: var(--accent-blue);
+    border: 1px solid rgba(59,130,246,0.2);
+  }
+
+  .toast svg { width: 16px; height: 16px; }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes toastOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-8px); }
+  }
+
+  /* ===== Animations ===== */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .page.active { animation: fadeIn 250ms ease; }
+  .syncing .sync-spinner { animation: spin 800ms linear infinite; }
+
+  /* ===== Scrollbar ===== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">
+        <svg viewBox="0 0 24 24" fill="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <span class="sidebar-brand-name">OpsCenter</span>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">监控告警</div>
+      <a class="nav-item active" onclick="showPage('page-categories')" id="nav-categories">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        问题分类
+      </a>
+      <a class="nav-item" onclick="showPage('page-skills-list')" id="nav-skills">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        自定义 Skills
+      </a>
+    </div>
+
+    <div class="sidebar-spacer"></div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- ========== PAGE: 告警项列表 ========== -->
+    <div class="page" id="page-alerts">
+      <div class="page-header">
+        <div class="page-title">告警项</div>
+      </div>
+
+      <!-- 上边：表单展示区域 -->
+      <div style="padding: 0 32px 24px;">
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr) 280px; gap:16px; align-items:end;">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">告警规则名称</label>
+            <input type="text" class="form-input" placeholder="搜索告警规则名称...">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">告警类型</label>
+            <select class="form-input">
+              <option value="">全部类型</option>
+              <option value="system">系统告警</option>
+              <option value="application">应用告警</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">服务组</label>
+            <select class="form-input">
+              <option value="">全部服务组</option>
+              <option value="db">数据库服务组</option>
+              <option value="k8s">容器平台组</option>
+              <option value="network">网络服务组</option>
+              <option value="app">应用服务组</option>
+              <option value="storage">存储服务组</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">状态</label>
+            <select class="form-input">
+              <option value="">全部状态</option>
+              <option value="enabled">已启用</option>
+              <option value="disabled">已禁用</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <button class="btn btn-primary" style="width:100%">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              新建告警规则
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 下边：列表区域 -->
+      <div class="table-container" style="padding-top:0;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>告警规则名称</th>
+              <th>类型</th>
+              <th>服务组</th>
+              <th>状态</th>
+              <th>最后更新时间</th>
+              <th style="width:160px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="alerts-tbody">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========== PAGE: 问题分类列表 ========== -->
+    <div class="page active" id="page-categories">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div class="page-title">问题分类</div>
+          <button class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            创建分类
+          </button>
+        </div>
+        <div class="filter-bar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" class="search-input" placeholder="搜索分类名称、ID...">
+          </div>
+          <select class="filter-select">
+            <option value="">全部状态</option>
+            <option value="enabled">已启用</option>
+            <option value="disabled">已禁用</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>问题分类名称</th>
+              <th>服务组</th>
+              <th>归属团队</th>
+              <th>创建人</th>
+              <th>最后更新时间</th>
+              <th style="width:140px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="categories-tbody">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========== PAGE: 自定义 Skills 列表 ========== -->
+    <div class="page" id="page-skills-list">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <div class="page-title">自定义 Skills</div>
+            <div class="page-subtitle">从 Skills 市场接入并管理告警处理能力</div>
+          </div>
+          <button class="btn btn-primary" onclick="showCreateForm()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            创建 Skill
+          </button>
+        </div>
+      </div>
+
+      <div class="table-container" id="skills-table-container">
+        <!-- Table will be rendered by JS -->
+      </div>
+    </div>
+
+    <!-- ========== PAGE: Skill 表单页 ========== -->
+    <div class="page" id="page-skill-form">
+      <div class="form-page-header">
+        <div class="form-page-header-left">
+          <button class="back-btn" onclick="goBackToList()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="form-page-title" id="form-page-title">创建 Skill</span>
+        </div>
+        <div class="form-page-actions">
+          <button class="btn btn-secondary" onclick="goBackToList()">取消</button>
+          <button class="btn btn-primary" id="form-submit-btn" onclick="submitForm()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            创建
+          </button>
+        </div>
+      </div>
+
+      <div class="form-layout">
+        <!-- Left: Form -->
+        <div class="form-panel">
+          <div class="form-group">
+            <label class="form-label">Skills 市场链接 <span class="required">*</span></label>
+            <div class="form-input-row">
+              <input type="url" class="form-input" id="input-url" placeholder="https://skills-market.example.com/skill/xxx" oninput="onUrlInput(this.value)">
+              <button class="btn btn-secondary" id="btn-sync-skill" onclick="syncSkill()" disabled>
+                <svg class="sync-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                同步
+              </button>
+            </div>
+            <div id="sync-status" style="display:none"></div>
+          </div>
+
+          <div id="update-banner" style="display:none">
+            <div class="sync-status-bar warning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>检测到 Skills 市场有新版本可用（远程 v2.1.0 → 本地 v2.0.0）</span>
+              <button class="btn btn-sync" onclick="syncLatest()" style="flex-shrink:0">
+                <svg class="sync-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                同步最新版本
+              </button>
+            </div>
+          </div>
+
+          <div class="form-divider"></div>
+
+          <!-- Skill Name Selector (shown after sync) -->
+          <div class="form-group" id="skill-name-group" style="display:none">
+            <label class="form-label">选择 Skill <span class="required">*</span></label>
+            <select class="form-input" id="select-skill-name" onchange="onSkillNameChange(this.value)">
+              <option value="">请选择 Skill</option>
+            </select>
+            <div class="form-hint" id="skill-name-hint">从仓库中识别到的 Skill，请选择需要接入的 Skill</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">绑定告警项 <span class="required">*</span></label>
+            <select class="form-input" id="select-binding-type" onchange="onBindingTypeChange(this.value)" style="margin-bottom: 8px;">
+              <option value="">请选择绑定类型</option>
+              <option value="category">问题分类ID</option>
+              <option value="rule">告警规则ID</option>
+            </select>
+            <input type="text" class="form-input" id="input-binding-value" placeholder="请先选择绑定类型" disabled oninput="onBindingValueInput(this.value)">
+            <div class="form-hint" id="binding-hint">选择绑定类型后，该 ID 将用于关联告警工单的路由规则</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">MCP Server <span class="required">*</span></label>
+            <div class="form-input-row">
+              <input type="text" class="form-input" id="input-mcp" placeholder="https://pre-mcp.alibaba-inc.com/cnarch-sre-mcp-server-v2/mcp" oninput="onMcpInput(this.value)">
+              <button class="btn btn-secondary" id="btn-test-mcp" onclick="testMcpServer()" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                测试权限
+              </button>
+            </div>
+            <div class="form-hint">如需配置多个 MCP Server，请以英文逗号分隔。例如：<code>https://host1/mcp,https://host2/mcp</code></div>
+            <div id="mcp-test-status" style="display:none"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">调用 Prompt</label>
+            <textarea class="form-input form-textarea" id="input-prompt" placeholder="请使用#{skillName}进行告警诊断：#{ticketString}"></textarea>
+            <div class="form-hint">可选填。不填时使用默认模板。变量占位符会在调用时自动替换为实际值。</div>
+            <div class="var-tags">
+              <span class="var-tag" onclick="insertVar('#{skillName}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                #{skillName}
+              </span>
+              <span class="var-tag" onclick="insertVar('#{ticketString}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                #{ticketString}
+              </span>
+              <span class="var-tag" onclick="insertVar('#{alertLevel}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                #{alertLevel}
+              </span>
+              <span class="var-tag" onclick="insertVar('#{serviceName}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                #{serviceName}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Preview -->
+        <div class="preview-panel">
+          <div class="preview-header">
+            <div class="preview-header-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Skill 预览
+            </div>
+            <span class="preview-version" id="preview-version" style="display:none">v2.0.0</span>
+          </div>
+          <div class="preview-body" id="preview-body">
+            <div class="preview-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span>输入 Skills 市场链接并同步后<br>此处将预览 skill.md 内容</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========== Modals ========== -->
+
+<!-- Link Skill Modal (for Categories) -->
+<div class="modal-overlay" id="link-skill-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">关联诊断 Skill</div>
+      <button class="modal-close" onclick="closeLinkSkillModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Skills 市场链接 <span class="required">*</span></label>
+        <div class="form-input-row">
+          <input type="url" class="form-input" id="link-input-url" placeholder="https://skills-market.example.com/skill/xxx" oninput="onLinkUrlInput(this.value)">
+          <button class="btn btn-secondary" id="link-btn-sync" onclick="linkSyncSkill()" disabled>
+            <svg class="sync-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            同步
+          </button>
+        </div>
+        <div id="link-sync-status" style="display:none"></div>
+      </div>
+
+      <div class="form-group" id="link-skill-name-group" style="display:none">
+        <label class="form-label">选择 Skill <span class="required">*</span></label>
+        <select class="form-input" id="link-select-skill-name" onchange="onLinkSkillNameChange(this.value)">
+          <option value="">请选择 Skill</option>
+        </select>
+        <div class="form-hint">从仓库中识别到的 Skill，请选择需要关联的 Skill</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">MCP Server <span class="required">*</span></label>
+        <div class="form-input-row">
+          <input type="text" class="form-input" id="link-input-mcp" placeholder="https://pre-mcp.alibaba-inc.com/xxx/mcp" oninput="onLinkMcpInput(this.value)">
+          <button class="btn btn-secondary" id="link-btn-test-mcp" onclick="linkTestMcp()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            测试
+          </button>
+        </div>
+        <div class="form-hint">如需配置多个 MCP Server，请以英文逗号分隔</div>
+        <div id="link-mcp-test-status" style="display:none"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeLinkSkillModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitLinkSkill()">确认关联</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Skill Modal (for Categories & Alerts) -->
+<div class="modal-overlay" id="view-skill-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">已关联的诊断 Skill</div>
+      <button class="modal-close" onclick="closeViewSkillModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="view-skill-content">
+      <!-- Rendered by JS -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-unlink" onclick="handleUnlinkSkill()">取消关联</button>
+      <button class="btn btn-secondary" onclick="closeViewSkillModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Skill Modal -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <div class="modal-body" style="padding: 24px;">
+      <div class="modal-title" style="font-size: 15px; margin-bottom: 8px;">确认删除</div>
+      <div class="form-hint" style="color:var(--text-secondary);line-height:1.5;">删除后该 Skill 将不再参与告警处理流程，此操作不可撤销。</div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px;">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">取消</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ===== Mock Data =====
+const MOCK_SKILL_MD = `# 数据库告警诊断 Skill
+
+智能分析数据库相关告警，提供根因分析和处置建议。
+
+## 概述
+
+本 Skill 专注于数据库（MySQL、PostgreSQL、MongoDB）相关告警的自动化诊断，覆盖连接池耗尽、慢查询堆积、主从延迟、磁盘空间不足等常见场景。
+
+## 能力范围
+
+- **连接池分析**：检测连接泄漏、并发峰值、配置不当
+- **慢查询诊断**：识别全表扫描、索引缺失、锁等待
+- **主从同步**：延迟趋势分析、断开原因定位
+- **资源预警**：磁盘 / 内存 / CPU 趋势预测
+
+## 输入格式
+
+\`\`\`json
+{
+  "alert_type": "db_connection_pool_exhausted",
+  "service": "order-service",
+  "metrics": { ... },
+  "timestamp": "2026-02-27T10:30:00Z"
+}
+\`\`\`
+
+## 输出格式
+
+### 根因分析
+给出最可能的 1-3 个原因及置信度评估。
+
+### 处置建议
+按优先级排序的处置步骤，包含具体命令或操作指引。
+
+### 历史关联
+自动匹配最近 30 天内的相似告警及其解决方案。
+
+---
+
+**版本**: v2.0.0 | **作者**: OpsTeam | **更新日期**: 2026-02-20`;
+
+// Alerts Data
+let alertRules = [
+  {
+    id: 'alert_db_cpu_001',
+    name: '数据库CPU使用率告警',
+    type: 'system',
+    serviceGroup: '数据库服务组',
+    status: 'enabled',
+    updatedAt: '2026-02-20 14:30',
+    linkedSkill: null
+  },
+  {
+    id: 'alert_db_mem_002',
+    name: '数据库内存使用率告警',
+    type: 'system',
+    serviceGroup: '数据库服务组',
+    status: 'enabled',
+    updatedAt: '2026-02-21 09:15',
+    linkedSkill: {
+      skillName: 'db-diagnosis',
+      marketUrl: 'https://skills-market.example.com/skill/db-diagnosis',
+      mcpServers: 'https://pre-mcp.alibaba-inc.com/cnarch-sre-mcp-server-v2/mcp',
+      version: 'v2.0.0'
+    }
+  },
+  {
+    id: 'alert_k8s_pod_003',
+    name: 'K8s Pod异常重启',
+    type: 'application',
+    serviceGroup: '容器平台组',
+    status: 'enabled',
+    updatedAt: '2026-02-22 16:45',
+    linkedSkill: null
+  },
+  {
+    id: 'alert_app_response_004',
+    name: '应用响应时间超时',
+    type: 'application',
+    serviceGroup: '应用服务组',
+    status: 'disabled',
+    updatedAt: '2026-02-18 11:20',
+    linkedSkill: null
+  },
+  {
+    id: 'alert_net_timeout_005',
+    name: '网络连接超时告警',
+    type: 'system',
+    serviceGroup: '网络服务组',
+    status: 'enabled',
+    updatedAt: '2026-02-23 10:00',
+    linkedSkill: {
+      skillName: 'network-diagnosis',
+      marketUrl: 'https://skills-market.example.com/skill/network-diagnosis',
+      mcpServers: 'https://pre-mcp.alibaba-inc.com/network-diag-server/mcp',
+      version: 'v1.0.0'
+    }
+  },
+  {
+    id: 'alert_storage_disk_006',
+    name: '存储磁盘空间不足',
+    type: 'system',
+    serviceGroup: '存储服务组',
+    status: 'enabled',
+    updatedAt: '2026-02-24 08:30',
+    linkedSkill: null
+  }
+];
+
+// Categories Data
+let categories = [
+  {
+    id: 'incident_db_001',
+    name: '数据库告警',
+    serviceGroup: '数据库服务组',
+    team: '基础架构团队',
+    createdBy: '张明',
+    updatedAt: '2026-02-20 14:30',
+    linkedSkill: null
+  },
+  {
+    id: 'incident_k8s_002',
+    name: 'K8s 容器异常',
+    serviceGroup: '容器平台组',
+    team: '平台研发团队',
+    createdBy: '李伟',
+    updatedAt: '2026-02-21 09:15',
+    linkedSkill: null
+  },
+  {
+    id: 'incident_net_003',
+    name: '网络连通性',
+    serviceGroup: '网络服务组',
+    team: '基础架构团队',
+    createdBy: '王芳',
+    updatedAt: '2026-02-22 16:45',
+    linkedSkill: {
+      skillName: 'network-diagnosis',
+      marketUrl: 'https://skills-market.example.com/skill/network-diagnosis',
+      mcpServers: 'https://pre-mcp.alibaba-inc.com/network-diag-server/mcp',
+      version: 'v1.0.0'
+    }
+  },
+  {
+    id: 'incident_app_004',
+    name: '应用服务异常',
+    serviceGroup: '应用服务组',
+    team: '业务研发团队',
+    createdBy: '张明',
+    updatedAt: '2026-02-18 11:20',
+    linkedSkill: null
+  },
+  {
+    id: 'incident_storage_005',
+    name: '存储告警',
+    serviceGroup: '存储服务组',
+    team: '基础架构团队',
+    createdBy: '李伟',
+    updatedAt: '2026-02-23 10:00',
+    linkedSkill: {
+      skillName: 'db-diagnosis',
+      marketUrl: 'https://skills-market.example.com/skill/db-diagnosis',
+      mcpServers: 'https://pre-mcp.alibaba-inc.com/cnarch-sre-mcp-server-v2/mcp',
+      version: 'v2.0.0'
+    }
+  }
+];
+
+// Skills Data
+let skills = [
+  {
+    id: 1,
+    name: '数据库告警诊断',
+    icon: '🗄️',
+    bindingType: 'category',
+    bindingValue: 'incident_db_001',
+    skillName: 'db-diagnosis',
+    createdAt: '2026-02-15',
+    createdBy: '张明',
+    status: 'normal',
+    url: 'https://skills-market.example.com/skill/db-diagnosis',
+    version: 'v2.0.0',
+    prompt: '请根据以下告警信息进行数据库告警诊断：\n\n#{ticketString}\n\n请输出根因分析和处置建议。',
+    mcpServers: 'https://pre-mcp.alibaba-inc.com/cnarch-sre-mcp-server-v2/mcp',
+    skillMd: MOCK_SKILL_MD
+  },
+  {
+    id: 2,
+    name: 'K8s 容器异常分析',
+    icon: '⎈',
+    bindingType: 'rule',
+    bindingValue: 'alert_rule_k8s_002',
+    skillName: 'k8s-analysis',
+    createdAt: '2026-02-18',
+    createdBy: '李伟',
+    status: 'update-available',
+    url: 'https://skills-market.example.com/skill/k8s-analysis',
+    version: 'v1.3.0',
+    prompt: '以下是 K8s 容器告警信息：\n\n#{ticketString}\n\n请分析 Pod 异常原因并给出恢复方案。',
+    mcpServers: 'https://pre-mcp.alibaba-inc.com/cnarch-sre-mcp-server-v2/mcp,https://pre-mcp.alibaba-inc.com/k8s-diag-server/mcp',
+    skillMd: '# K8s 容器异常分析 Skill\n\n自动分析 Kubernetes 环境下的容器异常...'
+  },
+  {
+    id: 3,
+    name: '网络连通性诊断',
+    icon: '🌐',
+    bindingType: 'category',
+    bindingValue: 'incident_net_003',
+    skillName: 'network-diagnosis',
+    createdAt: '2026-02-22',
+    createdBy: '王芳',
+    status: 'normal',
+    url: 'https://skills-market.example.com/skill/network-diagnosis',
+    version: 'v1.0.0',
+    prompt: '请对以下网络告警进行分析：\n\n#{ticketString}\n\n确认是否为网络抖动、丢包或 DNS 异常。',
+    mcpServers: 'https://pre-mcp.alibaba-inc.com/network-diag-server/mcp',
+    skillMd: '# 网络连通性诊断 Skill\n\n网络层告警的自动诊断与排查建议...'
+  }
+];
+
+// Global State
+let editingId = null;
+let deleteTargetId = null;
+let nextId = 4;
+let detectedSkillNames = [];
+let selectedSkillName = '';
+let currentCategoryId = null;
+let currentAlertId = null;
+let detectedLinkSkillNames = [];
+let selectedLinkSkillName = '';
+
+// ===== Render Alerts Table =====
+function renderAlertsTable() {
+  const tbody = document.getElementById('alerts-tbody');
+  tbody.innerHTML = alertRules.map(rule => `
+    <tr>
+      <td><span class="id-text">${rule.id}</span></td>
+      <td>
+        <div class="category-name-cell">
+          <span class="category-name">${rule.name}</span>
+          ${rule.linkedSkill ? `
+            <span class="skill-tag" onclick="viewAlertSkill('${rule.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+              ${rule.linkedSkill.skillName}
+            </span>
+          ` : ''}
+        </div>
+      </td>
+      <td>
+        <span class="category-tag" style="background:${rule.type === 'system' ? 'rgba(59,130,246,0.08)' : 'rgba(168,85,247,0.08)'};color:${rule.type === 'system' ? 'var(--accent-blue)' : '#a855f7'}">
+          ${rule.type === 'system' ? '系统告警' : '应用告警'}
+        </span>
+      </td>
+      <td>${rule.serviceGroup}</td>
+      <td>
+        <span class="status-badge ${rule.status === 'enabled' ? 'normal' : ''}" style="${rule.status === 'disabled' ? 'background:var(--accent-red-dim);color:var(--accent-red)' : ''}">
+          <span class="status-dot"></span>${rule.status === 'enabled' ? '已启用' : '已禁用'}
+        </span>
+      </td>
+      <td><span class="time-text">${rule.updatedAt}</span></td>
+      <td>
+        <div class="actions-cell">
+          ${rule.linkedSkill ? `
+            <button class="btn btn-link-skill linked" onclick="viewAlertSkill('${rule.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+              查看
+            </button>
+          ` : `
+            <button class="btn btn-link-skill" onclick="openAlertLinkModal('${rule.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              关联
+            </button>
+          `}
+          <button class="btn btn-ghost" title="编辑">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn btn-ghost" title="删除" style="color:var(--text-tertiary)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ===== Page Navigation =====
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+
+  // Update nav active state
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (pageId === 'page-alerts') {
+    document.getElementById('nav-alerts')?.classList.add('active');
+  } else if (pageId === 'page-categories' || pageId === 'page-category-form') {
+    document.getElementById('nav-categories')?.classList.add('active');
+  } else {
+    document.getElementById('nav-skills')?.classList.add('active');
+  }
+}
+
+// ===== Render Categories Table =====
+function renderCategoriesTable() {
+  const tbody = document.getElementById('categories-tbody');
+  tbody.innerHTML = categories.map(cat => `
+    <tr>
+      <td><span class="id-text">${cat.id}</span></td>
+      <td>
+        <div class="category-name-cell">
+          <span class="category-name">${cat.name}</span>
+          ${cat.linkedSkill ? `
+            <span class="skill-tag" onclick="viewSkill('${cat.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+              ${cat.linkedSkill.skillName}
+            </span>
+          ` : ''}
+        </div>
+      </td>
+      <td>${cat.serviceGroup}</td>
+      <td>${cat.team}</td>
+      <td>${cat.createdBy}</td>
+      <td><span class="time-text">${cat.updatedAt}</span></td>
+      <td>
+        <div class="actions-cell">
+          ${cat.linkedSkill ? `
+            <button class="btn btn-link-skill linked" onclick="viewSkill('${cat.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+              查看
+            </button>
+          ` : `
+            <button class="btn btn-link-skill" onclick="openLinkSkillModal('${cat.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              关联
+            </button>
+          `}
+          <button class="btn btn-ghost" title="编辑">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn btn-ghost" title="删除" style="color:var(--text-tertiary)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ===== Render Skills Table =====
+function renderSkillsTable() {
+  const container = document.getElementById('skills-table-container');
+  if (skills.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <div class="empty-state-title">还没有自定义 Skill</div>
+        <div class="empty-state-desc">从 Skills 市场接入 Skill 来增强告警处理能力，支持自定义调用 Prompt 和问题分类路由。</div>
+        <button class="btn btn-primary" onclick="showCreateForm()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          创建第一个 Skill
+        </button>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Skill 名称</th>
+          <th>绑定告警项</th>
+          <th>创建人</th>
+          <th>创建时间</th>
+          <th>状态</th>
+          <th style="width:120px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${skills.map(s => `
+          <tr>
+            <td>
+              <div class="skill-name">
+                <div class="skill-icon">${s.icon}</div>
+                <div>
+                  <div>${s.name}</div>
+                  ${s.skillName ? `<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;font-family:var(--font-mono)">${s.skillName}</div>` : ''}
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="category-tag" style="margin-right:4px">${s.bindingType === 'category' ? '问题分类' : '告警规则'}</span>
+              <span class="category-tag">${s.bindingValue}</span>
+            </td>
+            <td><span style="font-size:13px;color:var(--text-secondary)">${s.createdBy || '-'}</span></td>
+            <td><span class="time-text">${s.createdAt}</span></td>
+            <td>
+              ${s.status === 'normal'
+                ? '<span class="status-badge normal"><span class="status-dot"></span>已同步</span>'
+                : `<span class="status-badge update-available" onclick="editSkill(${s.id})"><span class="status-dot"></span>有更新</span>`
+              }
+            </td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn btn-ghost" onclick="editSkill(${s.id})" title="编辑">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  编辑
+                </button>
+                <button class="btn btn-ghost" onclick="showDeleteModal(${s.id})" title="删除" style="color:var(--text-tertiary)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ===== Link Skill Modal (Categories) =====
+function openLinkSkillModal(catId) {
+  currentCategoryId = catId;
+  detectedLinkSkillNames = [];
+  selectedLinkSkillName = '';
+  document.getElementById('link-input-url').value = '';
+  document.getElementById('link-input-mcp').value = '';
+  document.getElementById('link-select-skill-name').innerHTML = '<option value="">请选择 Skill</option>';
+  document.getElementById('link-skill-name-group').style.display = 'none';
+  document.getElementById('link-sync-status').style.display = 'none';
+  document.getElementById('link-mcp-test-status').style.display = 'none';
+  document.getElementById('link-btn-sync').disabled = true;
+  document.getElementById('link-btn-test-mcp').disabled = true;
+  document.getElementById('link-skill-modal').classList.add('active');
+}
+
+function closeLinkSkillModal() {
+  document.getElementById('link-skill-modal').classList.remove('active');
+  currentCategoryId = null;
+}
+
+function onLinkUrlInput(value) {
+  document.getElementById('link-btn-sync').disabled = !value.startsWith('https://') || value.length < 20;
+}
+
+function onLinkMcpInput(value) {
+  document.getElementById('link-btn-test-mcp').disabled = !value.startsWith('https://') || value.length < 10;
+  document.getElementById('link-mcp-test-status').style.display = 'none';
+}
+
+function onLinkSkillNameChange(value) {
+  selectedLinkSkillName = value;
+}
+
+function linkSyncSkill() {
+  const btn = document.getElementById('link-btn-sync');
+  const status = document.getElementById('link-sync-status');
+  btn.disabled = true;
+  btn.querySelector('svg').classList.add('syncing', 'spin');
+  status.style.display = 'block';
+  status.innerHTML = `<div class="sync-status-bar loading"><svg class="sync-spinner spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span>正在同步...</span></div>`;
+
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.querySelector('svg').classList.remove('spin');
+    detectedLinkSkillNames = ['db-diagnosis', 'db-slow-query', 'db-connection-pool'];
+    const select = document.getElementById('link-select-skill-name');
+    select.innerHTML = '<option value="">请选择 Skill</option>';
+    detectedLinkSkillNames.forEach(s => { select.innerHTML += `<option value="${s}">${s}</option>`; });
+    document.getElementById('link-skill-name-group').style.display = 'block';
+    status.innerHTML = `<div class="sync-status-bar success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>同步成功 · 检测到 ${detectedLinkSkillNames.length} 个 Skill</span></div>`;
+  }, 1500);
+}
+
+function linkTestMcp() {
+  const btn = document.getElementById('link-btn-test-mcp');
+  const status = document.getElementById('link-mcp-test-status');
+  btn.disabled = true;
+  status.style.display = 'block';
+  status.innerHTML = `<div class="sync-status-bar loading"><svg class="sync-spinner spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span>测试中...</span></div>`;
+
+  setTimeout(() => {
+    btn.disabled = false;
+    status.innerHTML = `<div class="sync-status-bar success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>权限验证通过</span></div>`;
+  }, 1200);
+}
+
+function submitLinkSkill() {
+  const url = document.getElementById('link-input-url').value;
+  const mcp = document.getElementById('link-input-mcp').value;
+  if (!url || !mcp) { showToast('请填写所有必填字段', 'info'); return; }
+  if (detectedLinkSkillNames.length === 0 || !selectedLinkSkillName) { showToast('请先同步并选择 Skill', 'info'); return; }
+
+  // Support both category and alert linking
+  if (currentCategoryId) {
+    const cat = categories.find(c => c.id === currentCategoryId);
+    if (cat) {
+      cat.linkedSkill = { skillName: selectedLinkSkillName, marketUrl: url, mcpServers: mcp, version: 'v2.0.0' };
+    }
+    closeLinkSkillModal();
+    renderCategoriesTable();
+    showToast('Skill 关联成功', 'success');
+  } else if (currentAlertId) {
+    const rule = alertRules.find(r => r.id === currentAlertId);
+    if (rule) {
+      rule.linkedSkill = { skillName: selectedLinkSkillName, marketUrl: url, mcpServers: mcp, version: 'v2.0.0' };
+    }
+    closeLinkSkillModal();
+    renderAlertsTable();
+    showToast('Skill 关联成功', 'success');
+  }
+}
+
+// ===== Unlink Handler (supports both categories and alerts) =====
+function handleUnlinkSkill() {
+  if (!confirm('确定要取消关联该 Skill 吗？')) return;
+
+  if (currentCategoryId) {
+    const cat = categories.find(c => c.id === currentCategoryId);
+    if (cat) cat.linkedSkill = null;
+    closeViewSkillModal();
+    renderCategoriesTable();
+    showToast('已取消关联', 'info');
+  } else if (currentAlertId) {
+    const rule = alertRules.find(r => r.id === currentAlertId);
+    if (rule) rule.linkedSkill = null;
+    closeViewSkillModal();
+    renderAlertsTable();
+    showToast('已取消关联', 'info');
+  }
+}
+
+// ===== View Skill Modal (Categories) =====
+function viewSkill(catId) {
+  currentCategoryId = catId;
+  const cat = categories.find(c => c.id === catId);
+  if (!cat?.linkedSkill) return;
+
+  const skill = cat.linkedSkill;
+  document.getElementById('view-skill-content').innerHTML = `
+    <div class="linked-skill-info">
+      <div class="linked-skill-header">
+        <div class="linked-skill-name">${skill.skillName}<span>v${skill.version}</span></div>
+        <div class="linked-skill-status"><span class="status-dot"></span>已关联</div>
+      </div>
+      <div class="linked-skill-detail">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/></svg>
+        <span>来源:</span><code>${skill.marketUrl}</code>
+      </div>
+      <div class="linked-skill-detail">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+        <span>MCP Server:</span><code>${skill.mcpServers}</code>
+      </div>
+    </div>`;
+  document.getElementById('view-skill-modal').classList.add('active');
+}
+
+function closeViewSkillModal() {
+  document.getElementById('view-skill-modal').classList.remove('active');
+  currentCategoryId = null;
+  currentAlertId = null;
+}
+
+// ===== Alert Skill Modal Functions =====
+function openAlertLinkModal(ruleId) {
+  currentAlertId = ruleId;
+  detectedLinkSkillNames = [];
+  selectedLinkSkillName = '';
+  document.getElementById('link-input-url').value = '';
+  document.getElementById('link-input-mcp').value = '';
+  document.getElementById('link-select-skill-name').innerHTML = '<option value="">请选择 Skill</option>';
+  document.getElementById('link-skill-name-group').style.display = 'none';
+  document.getElementById('link-sync-status').style.display = 'none';
+  document.getElementById('link-mcp-test-status').style.display = 'none';
+  document.getElementById('link-btn-sync').disabled = true;
+  document.getElementById('link-btn-test-mcp').disabled = true;
+  document.getElementById('link-skill-modal').classList.add('active');
+}
+
+function viewAlertSkill(ruleId) {
+  currentAlertId = ruleId;
+  const rule = alertRules.find(r => r.id === ruleId);
+  if (!rule?.linkedSkill) return;
+
+  const skill = rule.linkedSkill;
+  document.getElementById('view-skill-content').innerHTML = `
+    <div class="linked-skill-info">
+      <div class="linked-skill-header">
+        <div class="linked-skill-name">${skill.skillName}<span>v${skill.version}</span></div>
+        <div class="linked-skill-status"><span class="status-dot"></span>已关联</div>
+      </div>
+      <div class="linked-skill-detail">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/></svg>
+        <span>来源:</span><code>${skill.marketUrl}</code>
+      </div>
+      <div class="linked-skill-detail">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+        <span>MCP Server:</span><code>${skill.mcpServers}</code>
+      </div>
+    </div>`;
+  document.getElementById('view-skill-modal').classList.add('active');
+}
+
+// ===== Skills Form Page =====
+function showCreateForm() {
+  editingId = null;
+  document.getElementById('form-page-title').textContent = '创建 Skill';
+  document.getElementById('form-submit-btn').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>创建`;
+  document.getElementById('input-url').value = '';
+  document.getElementById('select-binding-type').value = '';
+  document.getElementById('input-binding-value').value = '';
+  document.getElementById('input-binding-value').disabled = true;
+  document.getElementById('input-binding-value').placeholder = '请先选择绑定类型';
+  document.getElementById('binding-hint').textContent = '选择绑定类型后，该 ID 将用于关联告警工单的路由规则';
+  document.getElementById('input-mcp').value = '';
+  document.getElementById('input-prompt').value = '';
+  document.getElementById('sync-status').style.display = 'none';
+  document.getElementById('update-banner').style.display = 'none';
+  document.getElementById('preview-version').style.display = 'none';
+  document.getElementById('skill-name-group').style.display = 'none';
+  document.getElementById('select-skill-name').disabled = false;
+  document.getElementById('skill-name-hint').textContent = '从仓库中识别到的 Skill，请选择需要接入的 Skill';
+  document.getElementById('mcp-test-status').style.display = 'none';
+  document.getElementById('btn-test-mcp').disabled = true;
+  document.getElementById('preview-body').innerHTML = `
+    <div class="preview-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span>输入 Skills 市场链接并同步后<br>此处将预览 skill.md 内容</span>
+    </div>`;
+  document.getElementById('btn-sync-skill').disabled = true;
+  showPage('page-skill-form');
+}
+
+function editSkill(id) {
+  const skill = skills.find(s => s.id === id);
+  if (!skill) return;
+
+  editingId = id;
+  document.getElementById('form-page-title').textContent = '编辑 Skill';
+  document.getElementById('form-submit-btn').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>保存`;
+  document.getElementById('input-url').value = skill.url;
+  document.getElementById('select-binding-type').value = skill.bindingType || '';
+  document.getElementById('input-binding-value').value = skill.bindingValue || '';
+  document.getElementById('input-binding-value').disabled = !skill.bindingType;
+  document.getElementById('input-binding-value').placeholder = skill.bindingType ?
+    (skill.bindingType === 'category' ? '输入问题分类 ID，如 incident_db_001' : '输入告警规则 ID，如 alert_rule_001') :
+    '请先选择绑定类型';
+  document.getElementById('binding-hint').textContent = skill.bindingType ?
+    (skill.bindingType === 'category' ? '该 ID 将用于关联告警工单的问题分类路由' : '该 ID 将用于关联告警规则的匹配') :
+    '选择绑定类型后，该 ID 将用于关联告警工单的路由规则';
+  document.getElementById('input-mcp').value = skill.mcpServers || '';
+  document.getElementById('input-prompt').value = skill.prompt || '';
+  document.getElementById('btn-sync-skill').disabled = false;
+  document.getElementById('btn-test-mcp').disabled = !(skill.mcpServers && skill.mcpServers.length > 10);
+  document.getElementById('mcp-test-status').style.display = 'none';
+
+  document.getElementById('sync-status').style.display = 'block';
+  document.getElementById('sync-status').innerHTML = `
+    <div class="sync-status-bar success">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>已同步 · ${skill.version}</span>
+    </div>`;
+
+  if (skill.status === 'update-available') {
+    document.getElementById('update-banner').style.display = 'block';
+  } else {
+    document.getElementById('update-banner').style.display = 'none';
+  }
+
+  document.getElementById('skill-name-group').style.display = 'block';
+  const skillNameSelect = document.getElementById('select-skill-name');
+  skillNameSelect.innerHTML = `<option value="${skill.skillName}" selected>${skill.skillName}</option>`;
+  skillNameSelect.disabled = true;
+  selectedSkillName = skill.skillName;
+  document.getElementById('skill-name-hint').textContent = '编辑模式下不可修改 Skill 名称';
+
+  document.getElementById('preview-version').style.display = 'inline-flex';
+  document.getElementById('preview-version').textContent = skill.version;
+  renderMarkdown(skill.skillMd);
+
+  showPage('page-skill-form');
+}
+
+function goBackToList() {
+  showPage('page-skills-list');
+  editingId = null;
+}
+
+// ===== Form Logic =====
+function onUrlInput(value) {
+  const btn = document.getElementById('btn-sync-skill');
+  const isValid = value.startsWith('https://') && value.length > 20;
+  btn.disabled = !isValid;
+}
+
+function onBindingTypeChange(value) {
+  const input = document.getElementById('input-binding-value');
+  const hint = document.getElementById('binding-hint');
+
+  if (value === 'category') {
+    input.disabled = false;
+    input.placeholder = '输入问题分类 ID，如 incident_db_001';
+    hint.textContent = '该 ID 将用于关联告警工单的问题分类路由';
+  } else if (value === 'rule') {
+    input.disabled = false;
+    input.placeholder = '输入告警规则 ID，如 alert_rule_001';
+    hint.textContent = '该 ID 将用于关联告警规则的匹配';
+  } else {
+    input.disabled = true;
+    input.value = '';
+    input.placeholder = '请先选择绑定类型';
+    hint.textContent = '选择绑定类型后，该 ID 将用于关联告警工单的路由规则';
+  }
+}
+
+function onBindingValueInput(value) {
+  // Validation logic if needed
+}
+
+function onSkillNameChange(value) {
+  selectedSkillName = value;
+  if (value && detectedSkillNames.length > 0) {
+    showToast(`已选择 Skill: ${value}`, 'info');
+  }
+}
+
+function onMcpInput(value) {
+  const btn = document.getElementById('btn-test-mcp');
+  const isValid = value.startsWith('https://') && value.length > 10;
+  btn.disabled = !isValid;
+  document.getElementById('mcp-test-status').style.display = 'none';
+}
+
+function testMcpServer() {
+  const btn = document.getElementById('btn-test-mcp');
+  const statusDiv = document.getElementById('mcp-test-status');
+  const mcpValue = document.getElementById('input-mcp').value;
+  const servers = mcpValue.split(',').map(s => s.trim()).filter(s => s);
+
+  btn.disabled = true;
+  statusDiv.style.display = 'block';
+  statusDiv.innerHTML = `<div class="sync-status-bar loading"><svg class="sync-spinner spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span>正在测试 ${servers.length} 个 MCP Server 的连接权限...</span></div>`;
+
+  setTimeout(() => {
+    btn.disabled = false;
+    const results = servers.map(s => {
+      const shortName = s.split('/').filter(p => p).pop() || s;
+      return '<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><polyline points="20 6 9 17 4 12"/></svg>' + shortName + '</span>';
+    }).join('');
+    statusDiv.innerHTML = `<div class="sync-status-bar success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>权限验证通过：${results}</span></div>`;
+    showToast('MCP Server 权限验证通过', 'success');
+  }, 1200);
+}
+
+function syncSkill() {
+  const btn = document.getElementById('btn-sync-skill');
+  const statusDiv = document.getElementById('sync-status');
+  const currentSkillName = selectedSkillName;
+
+  btn.classList.add('syncing');
+  btn.disabled = true;
+  statusDiv.style.display = 'block';
+  statusDiv.innerHTML = `<div class="sync-status-bar loading"><svg class="sync-spinner spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span>正在从 Skills 市场同步...</span></div>`;
+
+  setTimeout(() => {
+    btn.classList.remove('syncing');
+    btn.disabled = false;
+
+    detectedSkillNames = ['db-diagnosis', 'db-slow-query', 'db-connection-pool'];
+    const isInEditMode = editingId !== null;
+    if (!isInEditMode) {
+      selectedSkillName = '';
+    }
+
+    const skillNameSelect = document.getElementById('select-skill-name');
+    skillNameSelect.innerHTML = '<option value="">请选择 Skill</option>';
+    detectedSkillNames.forEach(name => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      if (isInEditMode && name === currentSkillName) {
+        option.selected = true;
+      }
+      skillNameSelect.appendChild(option);
+    });
+
+    document.getElementById('skill-name-group').style.display = 'block';
+
+    if (isInEditMode) {
+      skillNameSelect.disabled = true;
+      document.getElementById('skill-name-hint').textContent = '编辑模式下不可修改 Skill 名称';
+    } else {
+      skillNameSelect.disabled = false;
+      document.getElementById('skill-name-hint').textContent = '从仓库中识别到的 Skill，请选择需要接入的 Skill';
+    }
+
+    statusDiv.innerHTML = `<div class="sync-status-bar success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>同步成功 · 检测到 ${detectedSkillNames.length} 个 Skill</span></div>`;
+
+    document.getElementById('preview-version').style.display = 'inline-flex';
+    document.getElementById('preview-version').textContent = 'v2.0.0';
+    renderMarkdown(MOCK_SKILL_MD);
+    showToast(`Skill 同步成功，检测到 ${detectedSkillNames.length} 个 Skill`, 'success');
+  }, 1500);
+}
+
+function syncLatest() {
+  const banner = document.getElementById('update-banner');
+  const btn = banner.querySelector('.btn-sync');
+  const origText = btn.innerHTML;
+
+  btn.classList.add('syncing');
+  btn.innerHTML = `<svg class="sync-spinner spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> 同步中...`;
+
+  setTimeout(() => {
+    banner.style.display = 'none';
+    document.getElementById('preview-version').textContent = 'v2.1.0';
+
+    document.getElementById('sync-status').innerHTML = `
+      <div class="sync-status-bar success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>已同步最新版本 · v2.1.0</span>
+      </div>`;
+
+    if (editingId) {
+      const skill = skills.find(s => s.id === editingId);
+      if (skill) {
+        skill.version = 'v2.1.0';
+        skill.status = 'normal';
+      }
+    }
+
+    showToast('已同步至最新版本 v2.1.0', 'success');
+  }, 1800);
+}
+
+function submitForm() {
+  const url = document.getElementById('input-url').value;
+  const bindingType = document.getElementById('select-binding-type').value;
+  const bindingValue = document.getElementById('input-binding-value').value;
+  const mcp = document.getElementById('input-mcp').value;
+  const prompt = document.getElementById('input-prompt').value;
+
+  if (!url || !bindingType || !bindingValue || !mcp) {
+    showToast('请填写所有必填字段（URL、绑定类型、绑定值、MCP Server）', 'info');
+    return;
+  }
+
+  if (!editingId && detectedSkillNames.length === 0) {
+    showToast('请先点击「同步」按钮从 Skills 市场获取 Skill 信息', 'info');
+    return;
+  }
+
+  if (!editingId && detectedSkillNames.length > 0 && !selectedSkillName) {
+    showToast('请选择要接入的 Skill', 'info');
+    return;
+  }
+
+  if (editingId) {
+    const skill = skills.find(s => s.id === editingId);
+    if (skill) {
+      skill.url = url;
+      skill.bindingType = bindingType;
+      skill.bindingValue = bindingValue;
+      skill.mcpServers = mcp;
+      skill.prompt = prompt;
+      if (selectedSkillName) {
+        skill.skillName = selectedSkillName;
+      }
+    }
+    showToast('Skill 已更新', 'success');
+  } else {
+    const nameMatch = MOCK_SKILL_MD.match(/^# (.+)/m);
+    skills.push({
+      id: nextId++,
+      name: nameMatch ? nameMatch[1] : '新 Skill',
+      icon: '✨',
+      bindingType: bindingType,
+      bindingValue: bindingValue,
+      skillName: selectedSkillName || 'unknown',
+      createdAt: '2026-02-27',
+      createdBy: '当前用户',
+      status: 'normal',
+      url: url,
+      version: 'v2.0.0',
+      prompt: prompt || `请使用#{skillName}进行告警诊断：#{ticketString}`,
+      mcpServers: mcp,
+      skillMd: MOCK_SKILL_MD
+    });
+    showToast('Skill 创建成功', 'success');
+  }
+
+  detectedSkillNames = [];
+  selectedSkillName = '';
+
+  renderSkillsTable();
+  goBackToList();
+}
+
+// ===== Markdown Renderer =====
+function renderMarkdown(md) {
+  let html = md
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/^---$/gm, '<hr>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+
+  html = html.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('<h') || trimmed.startsWith('<ul') || trimmed.startsWith('<li') ||
+        trimmed.startsWith('<pre') || trimmed.startsWith('<hr') || trimmed.startsWith('</')) return line;
+    return `<p>${line}</p>`;
+  }).join('\n');
+
+  document.getElementById('preview-body').innerHTML = `<div class="md-preview">${html}</div>`;
+}
+
+function insertVar(varName) {
+  const textarea = document.getElementById('input-prompt');
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
+  textarea.value = text.substring(0, start) + varName + text.substring(end);
+  textarea.focus();
+  textarea.selectionStart = textarea.selectionEnd = start + varName.length;
+}
+
+// ===== Delete Modal =====
+function showDeleteModal(id) {
+  deleteTargetId = id;
+  document.getElementById('delete-modal').classList.add('active');
+}
+
+function closeDeleteModal() {
+  deleteTargetId = null;
+  document.getElementById('delete-modal').classList.remove('active');
+}
+
+function confirmDelete() {
+  if (deleteTargetId) {
+    skills = skills.filter(s => s.id !== deleteTargetId);
+    renderSkillsTable();
+    showToast('Skill 已删除', 'info');
+  }
+  closeDeleteModal();
+}
+
+// ===== Toast =====
+function showToast(message, type) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      ${type === 'success'
+        ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
+        : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'}
+    </svg>
+    ${message}`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ===== Init =====
+renderAlertsTable();
+renderCategoriesTable();
+renderSkillsTable();
+</script>
+</body>
+</html>
